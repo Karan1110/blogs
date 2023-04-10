@@ -1,53 +1,64 @@
-const router = require("express").Router();
-const { pool } = require("../startup/db");
+const express = require("express")
+const router = express.Router();
+const withDBConnection = require("../middlewares/connectDB");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
-router.get("/me", (req,res) => {
-    const { name, email, isAdmin, isGold } = pool.query("SELECT * FROM Users where id = ?", [req.body.id]);
-    if (!name || !email) return res.status(400).send("User not found.")
-    res.send({
-        name: name,
-        email: email,
-        isAdmin: isAdmin,
-        isGold: isGold
+router.get('/me', withDBConnection, async (req, res,next) => {
+         await req.db.query(`SELECT * FROM Users WHERE id = $1`, [req.body.id], (error, result) => {
+             if (error) {
+                 return res.status(400).send("Error fetching user data.");
+             }
+             if (result.rows.length === 0) {
+                 return res.status(404).send("User not found.");
+             }
+             const { name, email, isAdmin, isGold,password } = result.rows[0];
+             req.user = { name: name, email:email,isAdmin:isAdmin,isGold:isGold,password:password}
+             res.send(req.user);
+         });
     });
-});
+    
+    
+    router.post("/new", withDBConnection,async(req,res) => {
+    // throw new Error("sus")
 
-router.post("/new", (req,res) => {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
-    let user = pool.query("SELECT name FROM Users WHERE name = ?", [req.body.name]);
-    if (user) return res.status(400).send("User already exists. Try other name");
-
-    let salt = bcrypt.genSalt();
+    let salt = await bcrypt.genSalt(10)
     password = bcrypt.hash(req.body.password, salt);
 
-    const { name, email, isAdmin, isGold } = pool.query(`
+   await req.db.query(`
     CREATE TABLE Users(
-        id primary key
-
-        name varchar(55),
-        email varchar(75), 
-        isAdmin boolean, 
-        isGold boolean
-        );
-        INSERT INTO Users(name,email,password,isGold,isAdmin)
-        values(?,?,?,?,?);
-    `, [
-        req.body.name,
-        req.body.email,
-        req.body.password,
-        req.body.isAdmin,
-        req.body.isGold
-    ]);
-        let token = jwt.sign({ isAdmin: req.body.isAdmin, id: req.body.id }, config.get("jwtPrivateKey"));
-    res
-        .header("x-auth-token", token)
-        .send(name, email, isAdmin, isGold);
+        id SERIAL primary key,
+        name varchar(25),
+        email varchar(55), 
+        password varchar(55),
+        isAdmin bool, 
+        isGold bool
+      );
+      
+      INSERT INTO Users(name, email, password, isGold, isAdmin)
+      VALUES (
+        '${req.body.name}',
+        '${req.body.email}',
+        '${req.body.password}',
+        '${req.body.isGold}',
+       ' ${req.body.isAdmin}'
+      );
+    `, [],
+       (err, result) => {
+       if (err) return next(err);
+           if (result.rows.length === 0)
+               return next(err);
+             
+       
+       let token = jwt.sign({ isAdmin: req.body.isAdmin, id: req.body.id },config.get("jwtPrivateKey"));
+       res
+           .header("x-auth-token", token)
+           .send("sus bro");
+   });
 });
 
 router.put("/update", (req, res) => {
-    const { name, email, password } = pool.query(`
+    const { name, email, password } = req.db.query(`
     SELECT name,email,password FROM Users where id  = ?
     `, [
         req.body.id
@@ -56,7 +67,7 @@ router.put("/update", (req, res) => {
     const u_password = bcrypt.compare(req.body.password, password);
     if (!u_password) return res.status(400).send("Email or Password not valid.");
 
-    const { new_name, new_email, new_password } = pool.query(`
+    const { new_name, new_email, new_password } = req.db.query(`
     UPDATE Userss
     SET name = ?,email=?,password=?
     WHERE id = ?
@@ -73,12 +84,14 @@ router.put("/update", (req, res) => {
 })
 
 router.delete("/delete", (req, res) => {
-    const query = pool.query(`
+    const query = req.db.query(`
    DELETE Users
    WHERE id = ?
     `, [
         req.body.id
     ]);
-    
+
     res.status(200).send("user deleted successfully");
 });
+
+module.exports = router;

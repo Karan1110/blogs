@@ -1,13 +1,9 @@
 const express  = require("express");
 const app = express();
-const error = require("./middlewares/error");
- require("./startup/db")();
+const winston = require("winston");
+require("./startup/logging").default();
 require("./startup/routes")(app);
-
-app.use(express.urlencoded({extended:true}));
-app.use(express.json());
-app.use(error);
-
+// require('express-async-errors');
 app.listen(3000, () => {
-  console.log("running on port 3000")
+ winston.info("running on port 3000")
 });

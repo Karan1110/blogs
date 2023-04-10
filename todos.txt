@@ -1,1 +1,2 @@
-use lodash
+use lodash.
+build a blog out this.
