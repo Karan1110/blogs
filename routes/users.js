@@ -48,9 +48,10 @@ router.get('/me', withDBConnection, async (req, res,next) => {
        if (err) return next(err);
            if (result.rows.length === 0)
                return next(err);
-             
+           const { name, email, password, isGold, isAdmin } = result[0].rows;      
        
        let token = jwt.sign({ isAdmin: req.body.isAdmin, id: req.body.id },config.get("jwtPrivateKey"));
+           req.user = {name,email,password,isGold,isAdmin};
        res
            .header("x-auth-token", token)
            .send("sus bro");
@@ -59,7 +60,7 @@ router.get('/me', withDBConnection, async (req, res,next) => {
 
 router.put("/update", (req, res) => {
     const { name, email, password } = req.db.query(`
-    SELECT name,email,password FROM Users where id  = ?
+    SELECT name,email,password FROM Users where id  = $1
     `, [
         req.body.id
     ]);
@@ -69,8 +70,8 @@ router.put("/update", (req, res) => {
 
     const { new_name, new_email, new_password } = req.db.query(`
     UPDATE Userss
-    SET name = ?,email=?,password=?
-    WHERE id = ?
+    SET name = $1,email=$1,password=$1
+    WHERE id = $1
     `, [
         req.body.name, req.body.email, req.body.password,req.body.id
     ]);
@@ -86,7 +87,7 @@ router.put("/update", (req, res) => {
 router.delete("/delete", (req, res) => {
     const query = req.db.query(`
    DELETE Users
-   WHERE id = ?
+   WHERE id = $1
     `, [
         req.body.id
     ]);
