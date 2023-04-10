@@ -3,6 +3,7 @@ const { pool } = require("../startup/db");
 
 router.get("/me", (req,res) => {
     const { name, email, isAdmin, isGold } = pool.query("SELECT * FROM Users where id = ?", [req.body.id]);
+    if (!name || !email) return res.status(400).send("User not found.")
     res.send({
         name: name,
         email: email,
@@ -14,11 +15,13 @@ router.get("/me", (req,res) => {
 router.post("/new", (req,res) => {
     const { error } = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
-    const { password} = req.body;
+
     let user = pool.query("SELECT name FROM Users WHERE name = ?", [req.body.name]);
     if (user) return res.status(400).send("User already exists. Try other name");
+
     let salt = bcrypt.genSalt();
     password = bcrypt.hash(req.body.password, salt);
+
     const { name, email, isAdmin, isGold } = pool.query(`
     CREATE TABLE Users(
         id primary key
@@ -41,7 +44,6 @@ router.post("/new", (req,res) => {
     res
         .header("x-auth-token", token)
         .send(name, email, isAdmin, isGold);
-
 });
 
 router.put("/update", (req, res) => {
@@ -57,8 +59,9 @@ router.put("/update", (req, res) => {
     const { new_name, new_email, new_password } = pool.query(`
     UPDATE Userss
     SET name = ?,email=?,password=?
+    WHERE id = ?
     `, [
-        req.body.name, req.body.email, req.body.password
+        req.body.name, req.body.email, req.body.password,req.body.id
     ]);
 
     res.
@@ -70,5 +73,12 @@ router.put("/update", (req, res) => {
 })
 
 router.delete("/delete", (req, res) => {
-   const query = pool 
+    const query = pool.query(`
+   DELETE Users
+   WHERE id = ?
+    `, [
+        req.body.id
+    ]);
+    
+    res.status(200).send("user deleted successfully");
 });
