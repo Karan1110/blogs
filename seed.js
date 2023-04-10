@@ -10,14 +10,10 @@ router.post('/get', [withDBConnection,auth], async (req, res, next) => {
         CREATE TABLE Products(
             id SERIAL PRIMARY KEY,
             name VARCHAR(55),
-            properties_id INT,
+            properties JSON,
             FOREIGN KEY (properties_id) REFERENCES properties(id),
             description VARCHAR(75),
             price INT
-        );
-        CREATE TABLE Products(
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(55),
         );
         CREATE TABLE Orders(
             id SERIAL PRIMARY KEY,

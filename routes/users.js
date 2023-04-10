@@ -86,7 +86,7 @@ router.put("/update", (req, res) => {
 
 router.delete("/delete", (req, res) => {
     const query = req.db.query(`
-   DELETE Users
+   DELETE FROM Users
    WHERE id = $1
     `, [
         req.body.id

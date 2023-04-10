@@ -7,9 +7,11 @@ const auth = require("../middlewares/auth");
 router.get('/get', [withDBConnection,auth], async (req, res, next) => {
     await req.db.query(
         `
-        SELECT * FROM Products LIKE '%$1%';
+        SELECT * FROM Products AS result WHERE name LIKE '%$1%';
+        SELECT JSONB_EACH(properties)) FROM result;
+;
         `
-        , [], (error, r) => {
+        , [req.body.name], (error, r) => {
         if (error) {
             return res.status(400).send("Error fetching user data.");
         }
@@ -49,7 +51,7 @@ router.post('/new', [withDBConnection, auth, isAdmin], async (req, res, next) =>
     
 });
 
-router.post('/new', [withDBConnection, auth, isAdmin], async (req, res, next) => {
+router.put('/:id', [withDBConnection, auth, isAdmin], async (req, res, next) => {
     await req.db.query(`
     UPDATE Products
     SET name = $1,properties = $1,description = $1,price = $1
@@ -60,14 +62,52 @@ router.post('/new', [withDBConnection, auth, isAdmin], async (req, res, next) =>
             req.body.properties,
             req.body.description,
             req.body.price,
-            req.body.name
+            req.params.id
         ],
         (e, r) => {
             if (e) return next(e);
             if (r[0].rows === 0) return res.status(500).send("record not found.")
             res
                 .status(200)
-            send(r[0].rows);
+            .send(r[0].rows);
+
+        });
+    
+});
+
+router.put('/new', [withDBConnection, auth, isAdmin], async (req, res, next) => {
+    await req.db.query(`
+    DELETE FROM Products
+    WHERE id = $1;
+    `
+        , [
+            req.body.id
+        ],
+        (e, r) => {
+            if (e) return next(e);
+            if (r[0].rows === 0) return res.status(500).send("record not found.")
+            res
+                .status(200)
+            .send(r[0].rows);
+
+        });
+    
+});
+
+router.delete('/delete', [withDBConnection, auth, isAdmin], async (req, res, next) => {
+    await req.db.query(`
+    DELETE FROM Products
+    WHERE id = $1;
+    `
+        , [
+            req.body.id
+        ],
+        (e, r) => {
+            if (e) return next(e);
+            if (r[0].rows === 0) return res.status(500).send("record not found.")
+            res
+                .status(200)
+            .send(r[0].rows);
 
         });
     
