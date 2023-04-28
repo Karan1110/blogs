@@ -2,11 +2,10 @@ const express = require("express")
 const router = express.Router();
 const withDBConnection = require("../middlewares/connectDB");
 
-router.get('/blogs', async (req, res) => {
+router.get('/blogs', [withDBConnection],async (req, res) => {
     const { rows } = await req.db.query(
         `
-        SELECT * FROM Blogs 
-        
+        SELECT * FROM Blogs ;
         `, []
     )
     res
@@ -15,7 +14,7 @@ router.get('/blogs', async (req, res) => {
 });
 
 
-router.get('/blogs/:id', async (req, res) => {
+router.get('/blogs/:id', [withDBConnection] ,async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs WHERE id = $1 
@@ -27,7 +26,7 @@ router.get('/blogs/:id', async (req, res) => {
     .send(rows[0]);
 });
 
-router.get('/blogs/pagination/', async (req, res) => {
+router.get('/blogs/pagination/', [withDBConnection],async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs LIMIT $1 OFFSET $2 
@@ -39,7 +38,7 @@ router.get('/blogs/pagination/', async (req, res) => {
     .send(rows);
 });
 
-router.get('/blogs/pagination/', async (req, res) => {
+router.get('/blogs/pagination/', [withDBConnection],async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs LIMIT $1 OFFSET $2 
@@ -51,7 +50,7 @@ router.get('/blogs/pagination/', async (req, res) => {
     .send(rows);
 });
 
-router.post('/blogs/post', async (req, res) => {
+router.post('/blogs/post', [withDBConnection],async (req, res) => {
     const { rows } = await req.db.query(
         `
        INSERT INTO Blogs(title,author,createdAt)
@@ -66,7 +65,7 @@ router.post('/blogs/post', async (req, res) => {
 });
 
 
-router.put('/blogs/update', async (req, res) => {
+router.put('/blogs/update', [withDBConnection],async (req, res) => {
     const { rows } = await req.db.query(
         `
       UPDATE Blogs
@@ -87,7 +86,7 @@ router.put('/blogs/update', async (req, res) => {
 
 
 
-router.delete('/blogs/delete/:id', async (req, res) => {
+router.delete('/blogs/delete/:id', [withDBConnection],async (req, res) => {
     const { rows } = await req.db.query(
         `
       DELETE FROM Blogs
