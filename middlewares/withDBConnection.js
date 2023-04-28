@@ -1,7 +1,7 @@
 const winston = require("winston");
 const { Client } = require("pg");
 const config  = require("config");
-const debug = require("debug")("db")
+const winston = require("debug")("db")
 
     const client = new Client({
         connectionString: "postgres://unqgsqcj:PwOgL9DnYvPXdz5K_h6Wqddr_C4gGybz@mahmud.db.elephantsql.com/unqgsqcj",
@@ -14,7 +14,7 @@ const debug = require("debug")("db")
             winston.info("Connected to DB");
         })
         .catch((ex) => {
-            debug(ex);
+            winston(ex);
         });
 
 

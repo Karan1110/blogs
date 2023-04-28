@@ -13,7 +13,7 @@ router.get('/me', withDBConnection, async (req, res, next) => {
              if (result.rows.length === 0) {
                  return res.status(404).send("User not found.");
              }
-             const { name, email, isAdmin, isGold,password } = result.rows[0];
+             const { name, email, isAdmin,password } = result.rows[0];
              req.user = { name: name, email:email,isAdmin:isAdmin,isGold:isGold,password:password}
              res.send(req.user);
          });
@@ -26,7 +26,7 @@ router.post("/", withDBConnection, async (req, res, next) => {
     password = await bcrypt.hash(req.body.password, salt);
 
    await req.db.query(`
-      INSERT INTO Users(name, email, password, isGold, isAdmin)
+      INSERT INTO Users(name, email, password, isAdmin)
       VALUES (
         '${req.body.name}',
         '${req.body.email}',
@@ -40,14 +40,13 @@ router.post("/", withDBConnection, async (req, res, next) => {
        if (err) return next(err);
            if (result.rows.length === 0)
                return res.send("sususususususususu fuck");
-           const { name, email, password, isGold, isAdmin } = result[0].rows;      
+           const { name, email, password, isAdmin } = result[0].rows;      
        
        let token = jwt.sign({ isAdmin: req.body.isAdmin, id: req.body.id },config.get("jwtPrivateKey"));
        req.user = {
         name: req.body.name,
         email: req.body.email,
         password: password,
-        isGold: req.body.isGold,
         isAdmin: req.body.isAdmin,
       };
        res
