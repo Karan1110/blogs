@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 
 router.post("/login", async (req,res) => {
     await pool.query(`
-    SELECT id,email,isAdmin,password FROM Users WHERE email = $1
+    SELECT id,name,email,isAdmin FROM Users WHERE email = $1
     `, [req.body.email], (err, r) => {
         if (err) return res.status(500).send("something failed.")
         if (r.results[0].rows === 0) return res.status(400).send("User not found. try signing up instead.");
