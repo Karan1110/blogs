@@ -4,7 +4,8 @@ const withDBConnection = require("../middlewares/connectDB");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-router.get('/me', withDBConnection, async (req, res,next) => {
+router.get('/me', withDBConnection, async (req, res, next) => {
+    
          await req.db.query(`SELECT * FROM Users WHERE id = $1`, [req.body.id], (error, result) => {
              if (error) {
                  return res.status(400).send("Error fetching user data.");
@@ -19,72 +20,71 @@ router.get('/me', withDBConnection, async (req, res,next) => {
     });
     
     
-    router.post("/new", withDBConnection,async(req,res) => {
-    // throw new Error("sus")
-
+router.post("/", withDBConnection, async (req, res, next) => {
+    
     let salt = await bcrypt.genSalt(10)
-    password = bcrypt.hash(req.body.password, salt);
+    password = await bcrypt.hash(req.body.password, salt);
 
    await req.db.query(`
-    CREATE TABLE Users(
-        id SERIAL primary key,
-        name varchar(25),
-        email varchar(55), 
-        password varchar(55),
-        isAdmin bool, 
-        isGold bool
-      );
-      
       INSERT INTO Users(name, email, password, isGold, isAdmin)
       VALUES (
         '${req.body.name}',
         '${req.body.email}',
-        '${req.body.password}',
+        '${password}',
         '${req.body.isGold}',
        ' ${req.body.isAdmin}'
       );
-    `, [],
+      SELECT * FROM Users WHERE id = $1
+    `, [req.body.id],
        (err, result) => {
        if (err) return next(err);
            if (result.rows.length === 0)
-               return next(err);
+               return res.send("sususususususususu fuck");
            const { name, email, password, isGold, isAdmin } = result[0].rows;      
        
        let token = jwt.sign({ isAdmin: req.body.isAdmin, id: req.body.id },config.get("jwtPrivateKey"));
-           req.user = {name,email,password,isGold,isAdmin};
+       req.user = {
+        name: req.body.name,
+        email: req.body.email,
+        password: password,
+        isGold: req.body.isGold,
+        isAdmin: req.body.isAdmin,
+      };
        res
            .header("x-auth-token", token)
            .send("sus bro");
    });
 });
 
-router.put("/update", (req, res) => {
-    const { name, email, password } = req.db.query(`
+router.put("/", withDBConnection,async (req, res) => {
+   await req.db.query(`
     SELECT name,email,password FROM Users where id  = $1
     `, [
         req.body.id
-    ]);
+   ], (e, r) => {
+    if (e) return next(e);
+    if (r[0].rows.length === 0)
+        return next(err);
+    });
 
     const u_password = bcrypt.compare(req.body.password, password);
     if (!u_password) return res.status(400).send("Email or Password not valid.");
 
     const { new_name, new_email, new_password } = req.db.query(`
-    UPDATE Userss
+     UPDATE Users
     SET name = $1,email=$1,password=$1
-    WHERE id = $1
+    WHERE id = $1;
     `, [
         req.body.name, req.body.email, req.body.password,req.body.id
-    ]);
-
-    res.
-        status(200)
-        .send("Profile updated successfully.", {
-            name: new_name,
-            email: new_email,
-        });
+    ], (e, r) => {
+        if (e) return next(e);
+        if (r[0].rows.length === 0)
+            return next(err);
+        res.send(r[0].rows);
+    });
 })
 
-router.delete("/delete", (req, res) => {
+router.delete("/delete", [withDBConnection],(req, res) => {
     const query = req.db.query(`
    DELETE FROM Users
    WHERE id = $1

@@ -1,3 +1,4 @@
 {
-    "jwtPrivateKey" : "my_e-com"
+    "jwtPrivateKey" : "my_e-com",
+    "dbURL" : "postgres://unqgsqcj:PwOgL9DnYvPXdz5K_h6Wqddr_C4gGybz@mahmud.db.elephantsql.com/unqgsqcj"
 }
