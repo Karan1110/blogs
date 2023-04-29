@@ -50,8 +50,8 @@ CREATE TABLE errors (
     meta JSONB,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   )
-  
 `
     , [], (err, rows) => {
-        if(err) return winston.error(err.message, err);
+        if (err)
+            winston.error(err.message, err);
     });
