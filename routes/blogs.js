@@ -1,8 +1,11 @@
 const express = require("express")
 const router = express.Router();
-const withDBConnection = require("../middlewares/connectDB");
+const auth = require("../middlewares/auth");
+const isAdmin = require("../middlewares/isAdmin");
 
-router.get('/blogs', [withDBConnection],async (req, res) => {
+router.get('/blogs', [auth,
+isAdmin
+],async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs ;
@@ -14,7 +17,9 @@ router.get('/blogs', [withDBConnection],async (req, res) => {
 });
 
 
-router.get('/blogs/:id', [withDBConnection] ,async (req, res) => {
+router.get('/blogs/:id', [auth,
+isAdmin
+] ,async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs WHERE id = $1 
@@ -26,7 +31,9 @@ router.get('/blogs/:id', [withDBConnection] ,async (req, res) => {
     .send(rows[0]);
 });
 
-router.get('/blogs/pagination/', [withDBConnection],async (req, res) => {
+router.get('/blogs/pagination/', [auth,
+isAdmin
+],async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs LIMIT $1 OFFSET $2 
@@ -38,7 +45,9 @@ router.get('/blogs/pagination/', [withDBConnection],async (req, res) => {
     .send(rows);
 });
 
-router.get('/blogs/pagination/', [withDBConnection],async (req, res) => {
+router.get('/blogs/pagination/', [auth,
+isAdmin
+],async (req, res) => {
     const { rows } = await req.db.query(
         `
         SELECT * FROM Blogs LIMIT $1 OFFSET $2 
@@ -50,11 +59,14 @@ router.get('/blogs/pagination/', [withDBConnection],async (req, res) => {
     .send(rows);
 });
 
-router.post('/blogs/post', [withDBConnection],async (req, res) => {
+router.post('/blogs/post', [auth,
+isAdmin
+],async (req, res) => {
     const { rows } = await req.db.query(
         `
        INSERT INTO Blogs(title,author,createdAt)
        VALUES($1,$2,$3) 
+       
        RETURNING *
         
         `, [req.body.title,req.body.author,req.body.createdAt]
@@ -65,7 +77,9 @@ router.post('/blogs/post', [withDBConnection],async (req, res) => {
 });
 
 
-router.put('/blogs/update', [withDBConnection],async (req, res) => {
+router.put('/blogs/update', [auth,
+isAdmin
+],async (req, res) => {
     const { rows } = await req.db.query(
         `
       UPDATE Blogs
@@ -86,7 +100,9 @@ router.put('/blogs/update', [withDBConnection],async (req, res) => {
 
 
 
-router.delete('/blogs/delete/:id', [withDBConnection],async (req, res) => {
+router.delete('/blogs/delete/:id', [auth,
+isAdmin
+],async (req, res) => {
     const { rows } = await req.db.query(
         `
       DELETE FROM Blogs

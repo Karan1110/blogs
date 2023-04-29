@@ -1,11 +1,14 @@
 const express = require("express")
 const router = express.Router();
-const withDBConnection = require("../middlewares/connectDB");
+const withDBConnection = require("../middlewares/withDBConnection");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const auth = require("../middlewares/auth");
+const isAdmin = require("../middlewares/isAdmin");
 
-router.get('/me', withDBConnection, async (req, res, next) => {
+
+router.get('/me',[auth,isAdmin], async (req, res, next) => {
     
     await req.db.query(`SELECT * FROM Users WHERE id = $1`, [req.body.id])
 
@@ -14,7 +17,7 @@ router.get('/me', withDBConnection, async (req, res, next) => {
     });
     
     
-router.post("/", withDBConnection, async (req, res, next) => {
+router.post("/",[auth,isAdmin], async (req, res, next) => {
     
     let salt = await bcrypt.genSalt(10)
     password = await bcrypt.hash(req.body.password, salt);
@@ -25,12 +28,11 @@ router.post("/", withDBConnection, async (req, res, next) => {
         '${req.body.name}',
         '${req.body.email}',
         '${password}',
-        '${req.body.isGold}',
-       ' ${req.body.isAdmin}'
+        '${req.body.isAdmin}'
       )
 
       RETURNING *
-    `, [req.body.id]
+    `, []
    );
 
         if (rows.length === 0)
@@ -46,11 +48,11 @@ router.post("/", withDBConnection, async (req, res, next) => {
            .send(token);
    });
 
-router.put("/", withDBConnection,async (req, res) => {
+router.put("/:id", [auth,isAdmin],async (req, res) => {
   const {rows} =  await req.db.query(`
     SELECT password FROM Users where id  = $1
     `, [
-        req.body.id
+        req.params.id
   ])
       
     if (rows[0].length === 0)
@@ -73,12 +75,12 @@ router.put("/", withDBConnection,async (req, res) => {
 
 })
 
-router.delete("/delete", [withDBConnection],async (req, res) => {
-    const query = await req.db.query(`
+router.delete("/delete/:id", [auth,isAdmin],async (req, res) => {
+  await req.db.query(`
    DELETE FROM Users
    WHERE id = $1
     `, [
-        req.body.id
+        req.params.id
     ]);
 
     res.status(200).send("user deleted successfully");

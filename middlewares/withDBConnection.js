@@ -1,7 +1,6 @@
-const winston = require("winston");
 const { Client } = require("pg");
 const config  = require("config");
-const winston = require("debug")("db")
+const winston = require("winston")
 
     const client = new Client({
         connectionString: "postgres://unqgsqcj:PwOgL9DnYvPXdz5K_h6Wqddr_C4gGybz@mahmud.db.elephantsql.com/unqgsqcj",
