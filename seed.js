@@ -42,6 +42,15 @@ CREATE TABLE Blogs(
     createdAt TIMESTAMP,
     updatedAt TIMESTAMP
 )
+
+CREATE TABLE errors (
+    id SERIAL PRIMARY KEY,
+    level VARCHAR(10) NOT NULL,
+    message TEXT NOT NULL,
+    meta JSONB,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  )
+  
 `
     , [], (err, rows) => {
         if(err) return winston.error(err.message, err);

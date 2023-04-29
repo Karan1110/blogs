@@ -9,7 +9,7 @@ router.get('/me', withDBConnection, async (req, res, next) => {
     
     await req.db.query(`SELECT * FROM Users WHERE id = $1`, [req.body.id])
 
-             const { name, email, isAdmin} = result.rows[0];
+             const { name, email, isAdmin} = rows[0];
              res.send(req.user);
     });
     
@@ -19,7 +19,7 @@ router.post("/", withDBConnection, async (req, res, next) => {
     let salt = await bcrypt.genSalt(10)
     password = await bcrypt.hash(req.body.password, salt);
 
-    await req.db.query(`
+   const {rows} =  await req.db.query(`
       INSERT INTO Users(name, email, password, isAdmin)
       VALUES (
         '${req.body.name}',
@@ -30,9 +30,10 @@ router.post("/", withDBConnection, async (req, res, next) => {
       )
 
       RETURNING *
-    `, [req.body.id]);
+    `, [req.body.id]
+   );
 
-        if (result.rows.length === 0)
+        if (rows.length === 0)
                return res.send("not found, 404");     
        
     let token = jwt.sign(
