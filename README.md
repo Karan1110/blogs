@@ -29,7 +29,7 @@ An API written in Express framework using PostgreSQL as DBMS.
 
 - list blogs with pagination.
  - CRUD features for Users,Blogs and Authors
- - foreign key constraint protection for one to one  relation ship for blogs and author
+ - foreign key constraint protection for one to one  relationship for blogs and author
  - logging errors using winston to DB OR logs File
  - using express-async-errors to concentrate  on application logic and also to handle errors gracefully with winston
  - usage of config for safe env variables.
