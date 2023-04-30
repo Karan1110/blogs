@@ -18,7 +18,6 @@ npm run dev
 ```
 
 In case of restarting the Database
-run 
 ``` bash
 node destroy
 ```
