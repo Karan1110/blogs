@@ -58,11 +58,5 @@ git push heroku master
 ```
 
 ```bash
-git add .
-git commit -m "Initial commit"
-git push heroku master
-```
-
-```bash
 heroku open
 ```
